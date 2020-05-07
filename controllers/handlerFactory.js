@@ -36,7 +36,7 @@ exports.getOne = (Model) => catchAsync(async (req, res, next) => {
 
 //* GET ONE
 exports.getOneByName = (Model) => catchAsync(async (req, res, next) => {
-  const query = Model.find({ name: req.params.username });
+  const query = Model.find({ name: req.body.username });
   const doc = await query;
   if (!doc.length || !doc) {
     return next(new AppError('No document found with that name', 404));
