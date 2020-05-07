@@ -12,6 +12,8 @@ router.post('/signup', authController.signup);
 router.post('/signin', authController.login);
 router.get('/signout', authController.logout);
 router.post('/username', userController.getUserByName);
+router.get('/isLoggedIn', authController.isLoggedIn);
+
 
 router.get(
   '/me',

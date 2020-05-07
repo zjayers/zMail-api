@@ -75,6 +75,32 @@ exports.logout = (req, res) => {
   res.status(200).json({ status: 'success' });
 };
 
+exports.isLoggedIn = async (req, res) => {
+
+  // if the jwt stores the value of loggedout then return false
+  if (req.cookies.jwt === 'loggedout') return res.status(401).json({ loggedIn: false });
+
+  if (req.cookies.jwt) {
+    // Verify the token is authentic - promisify the verify process so it can be awaited
+    const payload = await promisify(jwt.verify)(
+      req.cookies.jwt,
+      process.env.JWT_SECRET,
+    );
+    // Check if the user still exists in database
+    const currentUser = await User.findById(payload.id);
+    if (!currentUser) return res.status(401).json({ loggedIn: false });
+
+    // Check if the user has changed password after the token was issued
+    if (currentUser.changedPasswordAfter(payload.iat)) return res.status(401).json({ loggedIn: false });
+    return res.status(200).json({ loggedIn: true });
+  }
+
+  if (!Object.exists(res.cookie.jwt)) {
+    // This is where we check whether the cookie is null
+    res.status(401).json({ loggedIn: false });
+  }
+};
+
 //! PROTECTED ROUTE MIDDLEWARE
 exports.protect = catchAsync(async (req, res, next) => {
   // Get the token from the user
@@ -124,40 +150,6 @@ exports.protect = catchAsync(async (req, res, next) => {
 
 // this function will test the req.cookies.jwt value to see if it's null
 Object.exists = (obj) => typeof obj !== 'undefined' && obj !== null;
-
-//! MIDDLEWARE TO CHECK WHEN USER IS LOGGED IN
-exports.isLoggedIn = async (req, res, next) => {
-  // if the jwt stores the value of loggedout then pass on to the next Middleware
-  if (req.cookies.jwt === 'loggedout') return next();
-
-  if (req.cookies.jwt) {
-    // Verify the token is authentic - promisify the verify process so it can be awaited
-    const payload = await promisify(jwt.verify)(
-      req.cookies.jwt,
-      process.env.JWT_SECRET,
-    );
-
-    // Check if the user still exists in database
-    const currentUser = await User.findById(payload.id);
-    if (!currentUser) return next();
-
-    // Check if the user has changed password after the token was issued
-    if (currentUser.changedPasswordAfter(payload.iat)) return next();
-
-    // THERE IS A LOGGED IN USER
-    // Add user data to the request to use in next middleware function
-    req.user = currentUser;
-    // MAKE USER ACCESSIBLE TO PUG TEMPLATES
-    res.locals.user = currentUser;
-
-    return next();
-  }
-
-  if (!Object.exists(res.cookie.jwt)) {
-    // This is where we check whether the cookie is null
-    return next();
-  }
-};
 
 //! RESTRICTED ROUTE MIDDLEWARE
 exports.restrictTo = (...roles) => (req, res, next) => {
