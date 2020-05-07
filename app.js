@@ -18,9 +18,17 @@ const authRouter = require('./routes/authRoutes');
 const app = express();
 app.enable('trust proxy');
 
+const whitelist = ['http://localhost:4200', 'http://example2.com'];
+const corsOptions = {
+  credentials: true, // This is important.
+  origin: (origin, callback) => {
+    if (whitelist.includes(origin)) return callback(null, true);
+    callback(new Error('Not allowed by CORS'));
+  },
+};
+
 // Implement CORS
-app.use(cors()); // Access-Control-Allow-Origin *
-app.options('*', cors());
+app.use(cors(corsOptions)); // Access-Control-Allow-Origin *
 
 // SERVING STATIC FILES
 app.use(express.static(path.join(__dirname, 'public')));
