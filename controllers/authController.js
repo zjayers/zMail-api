@@ -78,7 +78,7 @@ exports.logout = (req, res) => {
 exports.isLoggedIn = async (req, res) => {
 
   // if the jwt stores the value of loggedout then return false
-  if (req.cookies.jwt === 'loggedout') return res.status(401).json({ loggedIn: false });
+  if (req.cookies.jwt === 'loggedout') return res.status(200).json({ loggedIn: false });
 
   if (req.cookies.jwt) {
     // Verify the token is authentic - promisify the verify process so it can be awaited
@@ -88,16 +88,16 @@ exports.isLoggedIn = async (req, res) => {
     );
     // Check if the user still exists in database
     const currentUser = await User.findById(payload.id);
-    if (!currentUser) return res.status(401).json({ loggedIn: false });
+    if (!currentUser) return res.status(200).json({ loggedIn: false });
 
     // Check if the user has changed password after the token was issued
-    if (currentUser.changedPasswordAfter(payload.iat)) return res.status(401).json({ loggedIn: false });
+    if (currentUser.changedPasswordAfter(payload.iat)) return res.status(200).json({ loggedIn: false });
     return res.status(200).json({ loggedIn: true });
   }
 
   if (!Object.exists(res.cookie.jwt)) {
     // This is where we check whether the cookie is null
-    res.status(401).json({ loggedIn: false });
+    res.status(200).json({ loggedIn: false });
   }
 };
 
