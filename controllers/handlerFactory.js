@@ -35,14 +35,15 @@ exports.getOne = (Model) => catchAsync(async (req, res, next) => {
 });
 
 //* GET ONE
-exports.getOneByName = (Model) => catchAsync(async (req, res, next) => {
+exports.checkIfUserExists = (Model) => catchAsync(async (req, res) => {
   const query = Model.find({ name: req.body.username });
   const doc = await query;
-  if (!doc.length || !doc) {
-    return next(new AppError('No document found with that name', 404));
-  }
 
-  res.status(200).json({ status: 'success', data: doc });
+  if (!doc.length || !doc) {
+    res.status(200).json({ status: 'success', available: true });
+  } else {
+    res.status(422).json({ status: 'success', username: 'Username in use' });
+  }
 });
 
 // *CREATE ONE
