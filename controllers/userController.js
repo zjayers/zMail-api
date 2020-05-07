@@ -6,7 +6,7 @@ const factory = require('./handlerFactory');
 //* Factory Functions
 exports.getAllUsers = factory.getAll(User);
 exports.getUser = factory.getOne(User);
-exports.getUserByName = factory.getOneByName(User);
+exports.getUserByName = factory.checkIfUserExists(User);
 exports.updateUser = factory.updateOne(User);
 exports.deleteUser = factory.deleteOne(User);
 
